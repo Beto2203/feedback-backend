@@ -8,6 +8,7 @@ import {tokenExtractor, userExtractor} from './utils/middleware.js';
 import usersRouter from './controllers/users.js';
 import loginRouter from './controllers/login.js';
 import feedbackRouter from './controllers/feedbackBlogs.js';
+import commentsRouter from './controllers/comments.js';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(morgan('tiny'));
 app.use(tokenExtractor);
 
 app.use('/', userExtractor, feedbackRouter);
+app.use('/', userExtractor, commentsRouter)
 app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);
 
