@@ -11,7 +11,12 @@ const tokenExtractor = (req, res, next) => {
 };
 
 const userExtractor = (req, res, next) => {
-  if (req.token) req.user = jwt.verify(req.token, process.env.SECRET);
+  try {
+    if (req.token) req.user = jwt.verify(req.token, process.env.SECRET);
+  }
+  catch (err) {
+    res.status(401).json({ error: 'Invalid token'});
+  }
 
   next();
 }
