@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { DB_URI } from './utils/config.js';
 import cors from 'cors';
+import morgan from 'morgan';
 import 'express-async-errors';
 import {tokenExtractor, userExtractor} from './utils/middleware.js';
 import usersRouter from './controllers/users.js';
