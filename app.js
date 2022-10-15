@@ -21,6 +21,6 @@ app.use(express.json());
 app.use(morgan('tiny'));
 
 app.use('/api/users', usersRouter);
-app.use('api/login', loginRouter);
+app.use('/api/login', loginRouter);
 
 export default app;
