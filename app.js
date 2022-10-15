@@ -2,10 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { DB_URI } from './utils/config.js';
 import cors from 'cors';
-import morgan from 'morgan';
 import 'express-async-errors';
+import {tokenExtractor, userExtractor} from './utils/middleware.js';
 import usersRouter from './controllers/users.js';
 import loginRouter from './controllers/login.js';
+import feedbackRouter from './controllers/feedbackBlogs.js';
 
 const app = express();
 
@@ -20,6 +21,9 @@ app.use(express.json());
 
 app.use(morgan('tiny'));
 
+app.use(tokenExtractor);
+
+app.use('/', userExtractor, feedbackRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);
 
