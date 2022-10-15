@@ -2,16 +2,10 @@ import mongoose from 'mongoose';
 
 const commentSchema = new mongoose.Schema({
   comment: String,
-  user: {
+  author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  },
-  answers: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'FeedbackBlog'
-    }
-  ]
+  }
 });
 
 commentSchema.set('toJSON', {
@@ -19,7 +13,6 @@ commentSchema.set('toJSON', {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;
-    delete returnedObject.passwordHash;
   }
 });
 
