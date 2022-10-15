@@ -5,7 +5,7 @@ import User from '../models/user.js';
 const usersRouter = express.Router();
 
 usersRouter.post('/', async (req, res) => {
-  const { username, name, password } = req.password;
+  const { username, name, password } = req.body;
 
   if (!username || username.length < 3 || !password || password.length < 4 || !name) return res.status(400).end();
 
