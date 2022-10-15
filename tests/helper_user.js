@@ -1,4 +1,5 @@
 import User from '../models/user.js';
+import FeedbackBlog from '../models/feedbackBlog.js';
 
 const initialUsers = [
   {
@@ -18,7 +19,24 @@ const usersInDb = async () => {
   return users.map(user => user.toJSON());
 };
 
+const initialFeedbacks = [
+  {
+    title: 'Foo Foo',
+    content: 'Bar Bar',
+    tag: 'Bug',
+    likes: [],
+    comments: []
+  }
+];
+
+const feedbacksInDb = async () => {
+  const feedbacks = await FeedbackBlog.find({});
+  return feedbacks.map(feedback => feedback.toJSON());
+};
+
 export {
   initialUsers,
-  usersInDb
+  initialFeedbacks,
+  usersInDb,
+  feedbacksInDb
 };
