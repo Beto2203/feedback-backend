@@ -26,7 +26,7 @@ feedbackRouter.post('/', async (req, res) => {
     return res.status(400).end();
   }
 
-  const feedback = await (new FeedbackBlog({...body})).save();
+  const feedback = await (new FeedbackBlog({author: user.id, ...body})).save();
 
   const userObject = await User.findById(user.id);
   userObject.feedbackBlogs = userObject.feedbackBlogs.concat(feedback.id);
@@ -56,8 +56,9 @@ feedbackRouter.delete('/:id', async (req, res) => {
   author.feedbackBlogs = author.feedbackBlogs.filter(feedbackId => feedbackId.toString() !== req.params.id);
   author.save();
 
-  const commentPromises = FeedbackBlog.comment.map(commentId => Comment.findByIdAndDelete(commentId.toString()));
+  const commentPromises = feedback.comments.map(commentId => Comment.findByIdAndDelete(commentId.toString()));
   await Promise.all(commentPromises);
+
   await FeedbackBlog.findByIdAndDelete(req.params.id);
 
   res.status(204).end();
