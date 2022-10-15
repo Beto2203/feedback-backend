@@ -1,10 +1,13 @@
-import mongoose from 'mongoose';
+import mongoose, { get } from 'mongoose';
 import supertest from 'supertest';
 import app from '../app.js';
 import User from '../models/user.js';
+import FeedbackBlog from '../models/feedbackBlog.js';
 import {
   initialUsers,
-  usersInDb
+  initialFeedbacks,
+  usersInDb,
+  feedbacksInDb
 } from './helper_user.js';
 
 const api = supertest(app);
@@ -147,10 +150,10 @@ describe('Log in to the app', () => {
       .post('/api/users')
       .send(newUser);
 
-    user = {username: newUser.username, password: newUser.password};
+    user = { username: newUser.username, password: newUser.password };
   });
 
-  test('Login with an existing user succesfully', async () => {
+  test('Login with an existing user successfully', async () => {
     await api
       .post('/api/login')
       .send(user)
@@ -161,15 +164,151 @@ describe('Log in to the app', () => {
   test('Log in with a nonexistent username', async () => {
     await api
       .post('/api/login')
-      .send({username: 'blabla', password: user.password})
+      .send({ username: 'blabla', password: user.password })
       .expect(401);
   });
 
   test('Log in with an existing username but a wrong password', async () => {
     await api
       .post('/api/login')
-      .send({username: user.username, password: 'notTheActualPassword'})
+      .send({ username: user.username, password: 'notTheActualPassword' })
       .expect(401);
+  });
+});
+
+describe('When there are some feedback blogs saved', () => {
+  beforeEach(async () => {
+    await FeedbackBlog.deleteMany({});
+
+    const feedbackObjects = initialFeedbacks.map(feedback => new FeedbackBlog(feedback));
+    const feedbackPromises = feedbackObjects.map(promise => promise.save());
+    await Promise.all(feedbackPromises);
+  });
+
+  test('All feedbacks are returned as json', async () => {
+    const res = await api
+      .get('/')
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+
+    expect(res.body).toHaveLength(initialFeedbacks.length);
+  });
+
+  test('A specific note is within the returned notes', async () => {
+    const res = await api.get('/');
+
+    const contents = res.body.map(r => r.title);
+
+    expect(contents).toContain(
+      initialFeedbacks[0].title
+    );
+  });
+});
+
+describe('Addition of a new feedback blog', () => {
+  let user;
+
+  beforeAll(async () => {
+    const newUser = {
+      name: 'Richard',
+      username: 'LionHeart',
+      password: 'plantagenet1234'
+    };
+
+    await api
+      .post('/api/users')
+      .send(newUser);
+
+    const res = await api
+      .post('/api/login')
+      .send({ username: newUser.username, password: newUser.password });
+
+    user = res.body;
+  });
+
+  test('Creating a new feedback blog with the right token', async () => {
+    const initialFeedbacks = await feedbacksInDb();
+
+    const newFeedback = {
+      title: 'Latin translation',
+      content: 'Lorem ipsum dolor',
+      tag: 'Feature',
+      likes: [],
+      comments: []
+    };
+
+    const res = await api
+      .post('/')
+      .set({'Authorization': `bearer ${user.token}`})
+      .send(newFeedback)
+      .expect(201)
+      .expect('Content-Type', /application\/json/);
+
+    const finalFeedbacks = await feedbacksInDb();
+    const titles = finalFeedbacks.map(feedback => feedback.title);
+
+    expect(finalFeedbacks).toHaveLength(initialFeedbacks.length + 1);
+    expect(titles).toContain(
+      'Latin translation'
+    );
+  });
+
+  test('Creating a new feedback blog with a wrong token', async () => {
+    const initialFeedbacks = await feedbacksInDb();
+
+    const newFeedback = {
+      title: 'Latin translation',
+      content: 'Lorem ipsum dolor',
+      tag: 'Feature',
+      likes: [],
+      comments: []
+    };
+
+    await api
+      .post('/')
+      .set({'Authorization': `bearer ${user.token}324`})
+      .send(newFeedback)
+      .expect(401);
+
+    const finalFeedbacks = await feedbacksInDb();
+
+    expect(finalFeedbacks).toHaveLength(initialFeedbacks.length);
+  });
+
+  test('Creating a new feedback blog without the required fields of title or tag', async () => {
+    const initialFeedbacks = await feedbacksInDb();
+
+    const newFeedNoTitle = {
+      title: '',
+      content: 'Lorem ipsum dolor',
+      tag: 'Feature',
+      likes: [],
+      comments: []
+    };
+
+    const newFeedNoTag = {
+      title: 'Latin translation',
+      content: 'Lorem ipsum dolor',
+      tag: '',
+      likes: [],
+      comments: []
+    };
+
+    await api
+      .post('/')
+      .set({'Authorization': `bearer ${user.token}`})
+      .send(newFeedNoTitle)
+      .expect(400);
+
+    await api
+      .post('/')
+      .set({'Authorization': `bearer ${user.token}`})
+      .send(newFeedNoTag)
+      .expect(400);
+
+    const finalFeedbacks = await feedbacksInDb();
+
+    expect(finalFeedbacks).toHaveLength(initialFeedbacks.length);
   });
 });
 
