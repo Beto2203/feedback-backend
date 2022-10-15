@@ -9,6 +9,7 @@ import {
   usersInDb,
   feedbacksInDb
 } from './helper_user.js';
+import feedbackBlogs from '../controllers/feedbackBlogs.js';
 
 const api = supertest(app);
 
@@ -226,7 +227,7 @@ describe('Addition of a new feedback blog', () => {
     user = res.body;
   });
 
-  test('Creating a new feedback blog with the right token', async () => {
+  test('Creating a new feedback blog with the right token successfully', async () => {
     const initialFeedbacks = await feedbacksInDb();
 
     const newFeedback = {
@@ -253,7 +254,7 @@ describe('Addition of a new feedback blog', () => {
     );
   });
 
-  test('Creating a new feedback blog with a wrong token', async () => {
+  test('Creating a new feedback blog with a wrong token will result in failure', async () => {
     const initialFeedbacks = await feedbacksInDb();
 
     const newFeedback = {
@@ -275,7 +276,7 @@ describe('Addition of a new feedback blog', () => {
     expect(finalFeedbacks).toHaveLength(initialFeedbacks.length);
   });
 
-  test('Creating a new feedback blog without the required fields of title or tag', async () => {
+  test('Creating a new feedback blog without the required fields of title or tag will result in failure', async () => {
     const initialFeedbacks = await feedbacksInDb();
 
     const newFeedNoTitle = {
@@ -309,6 +310,67 @@ describe('Addition of a new feedback blog', () => {
     const finalFeedbacks = await feedbacksInDb();
 
     expect(finalFeedbacks).toHaveLength(initialFeedbacks.length);
+  });
+
+  afterAll(async () => {
+    await User.deleteMany({});
+  });
+});
+
+describe('Removal a feedback blog', () => {
+  let user;
+  let feedbackId;
+
+  beforeAll(async () => {
+    const newUser = {
+      name: 'Richard',
+      username: 'LionHeart',
+      password: 'plantagenet1234'
+    };
+
+    await api
+      .post('/api/users')
+      .send(newUser);
+
+    const res = await api
+      .post('/api/login')
+      .send({ username: newUser.username, password: newUser.password });
+
+    user = res.body;
+  });
+
+  beforeEach(async () => {
+    const newFeedback = {
+      title: 'Latin translation',
+      content: 'Lorem ipsum dolor',
+      tag: 'Feature',
+      likes: [],
+      comments: []
+    };
+
+    const res = await api
+      .post('/')
+      .set({'Authorization': `bearer ${user.token}`})
+      .send(newFeedback);
+
+    feedbackId = res.body.id;
+  });
+
+  test('Deleting a feedback blog with the proprietary ID successfully', async () => {
+    const initialFeedbacks = await feedbacksInDb();
+
+    await api
+      .delete(`/${feedbackId}`)
+      .set({'Authorization': `bearer ${user.token}`})
+      .expect(204);
+
+    const finalFeedbacks = await feedbacksInDb();
+
+    expect(finalFeedbacks).toHaveLength(initialFeedbacks.length - 1);
+  });
+
+  afterAll(async () => {
+    await User.deleteMany({});
   });
 });
 
