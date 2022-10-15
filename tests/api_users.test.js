@@ -9,15 +9,14 @@ import {
 
 const api = supertest(app);
 
-beforeEach(async () => {
-  await User.deleteMany({});
-
-  const userObjects = initialUsers.map(user => new User(user));
-  const userPromises = userObjects.map(promise => promise.save());
-  await Promise.all(userPromises);
-});
-
 describe('Creating a new user', () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+
+    const userObjects = initialUsers.map(user => new User(user));
+    const userPromises = userObjects.map(promise => promise.save());
+    await Promise.all(userPromises);
+  });
   test('A new user can be added', async () => {
     const initialUsers = await usersInDb();
     const newUser = {
@@ -131,6 +130,46 @@ describe('Creating a new user', () => {
     const finalUsers = await usersInDb();
 
     expect(finalUsers).toHaveLength(initialUsers.length);
+  });
+});
+
+describe('Log in to the app', () => {
+  let user;
+
+  beforeAll(async () => {
+    const newUser = {
+      name: 'Richard',
+      username: 'LionHeart',
+      password: 'plantagenet1234'
+    };
+
+    await api
+      .post('/api/users')
+      .send(newUser);
+
+    user = {username: newUser.username, password: newUser.password};
+  });
+
+  test('Login with an existing user succesfully', async () => {
+    await api
+      .post('/api/login')
+      .send(user)
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+  });
+
+  test('Log in with a nonexistent username', async () => {
+    await api
+      .post('/api/login')
+      .send({username: 'blabla', password: user.password})
+      .expect(401);
+  });
+
+  test('Log in with an existing username but a wrong password', async () => {
+    await api
+      .post('/api/login')
+      .send({username: user.username, password: 'notTheActualPassword'})
+      .expect(401);
   });
 });
 
