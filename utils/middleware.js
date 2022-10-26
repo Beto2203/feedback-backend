@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 const tokenExtractor = (req, res, next) => {
-  const authorization = req.get('authorization');
+  const authorization = req.get('Authorization');
   if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
     req.token = authorization.substring(7);
   }
@@ -15,7 +15,7 @@ const userExtractor = (req, res, next) => {
     if (req.token) req.user = jwt.verify(req.token, process.env.SECRET);
   }
   catch (err) {
-    res.status(401).json({ error: 'Invalid token'});
+    console.log('Failed verification');
   }
 
   next();
