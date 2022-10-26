@@ -26,8 +26,6 @@ feedbackRouter.post('/', async (req, res) => {
   const body = req.body;
   const user = req.user;
 
-  console.log(user);
-
   if (!req.token || !user || !user.id) {
     return res.status(401).json({ error: 'token missing or invalid' });
   }
