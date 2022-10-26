@@ -25,8 +25,8 @@ app.use(morgan('tiny'));
 
 app.use(tokenExtractor);
 
-app.use('/', userExtractor, feedbackRouter);
-app.use('/', userExtractor, commentsRouter)
+app.use('/api/feedbacks', userExtractor, feedbackRouter);
+app.use('/api/feedbacks', userExtractor, commentsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);
 
