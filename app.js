@@ -18,6 +18,8 @@ const app = express();
   if (connection) console.log('Connected to MongoDB');
 })();
 
+app.use(express.static('build'))
+
 app.use(cors());
 app.use(express.json());
 
