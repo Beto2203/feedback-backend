@@ -2,19 +2,16 @@ import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   username: String,
-  name: String,
-  passwordHash: String,
-  feedbackBlogs: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'FeedbackBlog'
-    }
-  ]
+  passwordHash: String
 });
 
 userSchema.set('toJSON', {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
+    try {
+      returnedObject.id = (returnedObject._id).toString();
+    } catch (err) {
+
+    }
     delete returnedObject._id;
     delete returnedObject.__v;
     delete returnedObject.passwordHash;
