@@ -8,14 +8,11 @@ commentsRouter.post('/:feedbackId', async (req, res) => {
   const body = req.body;
   const user = req.user;
 
-  console.log(user)
-  console.log(req.token)
-
   if (!req.token || !user || !user.id) {
     return res.status(401).json({ error: 'token missing or invalid' });
   }
 
-  if (!body.comment) {
+  if (!body.comment || body.comment.length < 1) {
     return res.status(400).end();
   }
 
