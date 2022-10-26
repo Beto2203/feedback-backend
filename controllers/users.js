@@ -5,9 +5,9 @@ import User from '../models/user.js';
 const usersRouter = express.Router();
 
 usersRouter.post('/', async (req, res) => {
-  const { username, name, password } = req.body;
+  const { username, password } = req.body;
 
-  if (!username || username.length < 3 || !password || password.length < 4 || !name) return res.status(400).end();
+  if (!username || username.length < 3 || !password || password.length < 4) return res.status(400).end();
 
   const repeatedUser = await User.findOne({ username });
   if (repeatedUser) return res.status(400).json({error: 'Username is already taken'});
@@ -17,7 +17,6 @@ usersRouter.post('/', async (req, res) => {
 
   const user = new User({
     username,
-    name,
     passwordHash
   });
 
